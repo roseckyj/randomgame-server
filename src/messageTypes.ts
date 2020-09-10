@@ -1,3 +1,6 @@
+export interface playerMetadata {
+    timeout: Date;
+}
 export interface player {
     x: number;
     y: number;

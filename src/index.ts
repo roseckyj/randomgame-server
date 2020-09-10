@@ -1,4 +1,4 @@
-import { player, messageUpdate } from './messageTypes';
+import { player, messageUpdate, serverPlayer } from './messageTypes';
 
 const Express = require('express')();
 const Http = require('http').Server(Express);
@@ -13,8 +13,16 @@ Http.listen(PORT, () => {
 });
 
 var players: { [key: string]: player } = {};
+var metadata: { [key: string]: serverPlayer } = {};
 
 setInterval(() => {
+    Object.keys(players).forEach((key) => {
+        if (Math.abs((metadata[key].timeout as number) - ((new Date() as any) as number)) > 2000) {
+            delete players[key];
+            console.log('Disconnected user due to inactivity: id = ', key);
+        }
+    });
+
     Socketio.emit('players', players);
 }, 100);
 
@@ -25,14 +33,17 @@ Socketio.on('connection', (socket: SocketIO.Socket) => {
     }
 
     let idStr = id.toString();
+    console.log('Connected new user: id = ', idStr);
 
     const newPlayer: player = { x: 0, y: 0, velocityX: 0, velocityY: 0 };
     players[idStr] = newPlayer;
+    metadata[idStr] = { timeout: new Date() };
 
     socket.emit('id', idStr);
     socket.emit('players', players);
 
     socket.on('update', (data: messageUpdate) => {
         players[data.id] = data.content;
+        metadata[data.id].timeout = new Date();
     });
 });
