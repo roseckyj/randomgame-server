@@ -44,6 +44,9 @@ Socketio.on('connection', (socket: SocketIO.Socket) => {
 
     socket.on('update', (data: messageUpdate) => {
         players[data.id] = data.content;
+        if (!Object.keys(metadata).includes(data.id)) {
+            metadata[data.id] = { timeout: new Date() };
+        }
         metadata[data.id].timeout = new Date();
     });
 });

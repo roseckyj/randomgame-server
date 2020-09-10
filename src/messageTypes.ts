@@ -9,6 +9,6 @@ export interface player {
 }
 
 export interface messageUpdate {
-    id: number;
+    id: string;
     content: player;
 }

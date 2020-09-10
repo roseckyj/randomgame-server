@@ -19,23 +19,8 @@
   },
   "scripts": {
     "start": "ts-node --transpile-only --project ./tsconfig.json ./src/index.ts",
-    "server-develop": "onchange -i \"./{src}/**/*.{ts,tsx,js,json}\" -- npm run server-start",
+    "server-develop": "onchange -i \"./{src}/**/*.{ts,tsx,js,json}\" -- npm run start",
     "prettier-watch": "onchange \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- prettier --config .prettierrc --write \"{{changed}}\""
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   },
   "devDependencies": {
     "onchange": "^7.0.2",
