@@ -4,7 +4,7 @@ const Express = require('express')();
 const Http = require('http').Server(Express);
 const Socketio = require('socket.io')(Http);
 
-const PORT = 3000;
+const PORT = process.env.PORT || 80;
 
 Http.listen(PORT, () => {
     console.info('██████████████████████████████████████████');
