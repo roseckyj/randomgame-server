@@ -19,7 +19,7 @@
   },
   "scripts": {
     "start": "ts-node --transpile-only --project ./tsconfig.json ./src/index.ts",
-    "server-develop": "onchange -i \"./{src}/**/*.{ts,tsx,js,json}\" -- npm run start",
+    "server-develop": "onchange -i -k \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- npm run start",
     "prettier-watch": "onchange \"{src,server,public,scripts}/**/*.{ts,tsx,js,jsx,html,css}\" -- prettier --config .prettierrc --write \"{{changed}}\""
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import { player, messageUpdate, serverPlayer } from './messageTypes';
+import { player, messageUpdate, serverPlayer, messageMapRequest, messageMapChunk } from './messageTypes';
 
 const Express = require('express')();
 const Http = require('http').Server(Express);
@@ -9,7 +9,6 @@ const PORT = process.env.PORT || 80;
 Http.listen(PORT, () => {
     console.info('██████████████████████████████████████████');
     console.info(`API is running at http://localhost:${PORT}`);
-    // Note: usefull in future> displayRoutes(app);
 });
 
 var players: { [key: string]: player } = {};
@@ -28,9 +27,9 @@ setInterval(() => {
 
 Socketio.on('connection', (socket: SocketIO.Socket) => {
     let id = 0;
-    for (let i = Math.random(); Object.keys(players).includes(id.toString()); i = Math.random()) {
-        id = i;
-    }
+    do {
+        id = Math.floor(Math.random() * 1000000);
+    } while(Object.keys(players).includes(id.toString()));
 
     let idStr = id.toString();
     console.log('Connected new user: id = ', idStr);
@@ -48,5 +47,17 @@ Socketio.on('connection', (socket: SocketIO.Socket) => {
             metadata[data.id] = { timeout: new Date() };
         }
         metadata[data.id].timeout = new Date();
+    });
+
+    socket.on('mapRequest', (data: messageMapRequest) => {
+        const basicFloor = new Array(16).fill(new Array(16).fill(1));
+
+        const response: messageMapChunk = {
+            x: data.x,
+            y: data.y,
+            ground: basicFloor,
+            objects: []
+        }
+        socket.emit('mapChunk', response);
     });
 });
