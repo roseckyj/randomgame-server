@@ -3,8 +3,11 @@ import { player, messageUpdate, serverPlayer, messageMapRequest, messageMapChunk
 const Express = require('express')();
 const Http = require('http').Server(Express);
 const Socketio = require('socket.io')(Http);
+import SimplexNoise from 'simplex-noise';
 
 const PORT = process.env.PORT || 80;
+
+const simplex = new SimplexNoise()
 
 Http.listen(PORT, () => {
     console.info('██████████████████████████████████████████');
@@ -50,14 +53,50 @@ Socketio.on('connection', (socket: SocketIO.Socket) => {
     });
 
     socket.on('mapRequest', (data: messageMapRequest) => {
-        const basicFloor = new Array(16).fill(new Array(16).fill(1));
-
-        const response: messageMapChunk = {
-            x: data.x,
-            y: data.y,
-            ground: basicFloor,
-            objects: []
-        }
-        socket.emit('mapChunk', response);
+        generateChunk(data.x, data.y).then((floor) => {
+            const response: messageMapChunk = {
+                x: data.x,
+                y: data.y,
+                ground: floor,
+                objects: []
+            }
+            socket.emit('mapChunk', response);
+        });
     });
 });
+
+async function generateChunk(chunkX: number, chunkY: number) {
+    let chunkData:number[][] = [];
+
+    for (let x = 0; x < 16; x++) {
+        chunkData[x] = []
+    }
+
+    for (let x = 0; x < 16; x++) {
+        for (let y = 0; y < 16; y++) {
+            chunkData[x].push(getTerrain(chunkX * 16 + x, chunkY * 16 + y));
+        }
+    }
+
+    //chunkData.forEach((row) => console.log(row.join("")));
+
+    return chunkData;
+}
+
+function getTerrain(x: number, y: number): number {
+    const NOISE_SCALE = 0.02;
+
+    const water = simplex.noise2D(x * NOISE_SCALE, y * NOISE_SCALE);
+    const forrest = simplex.noise2D(x * NOISE_SCALE, y * NOISE_SCALE + 200);
+
+    if (water > 0.7) {
+        return 2; // Lake (water)
+    }
+    if (water > 0.6 && forrest < -0.3) {
+        return 4; // Sand
+    }
+    if (forrest > 0.4) {
+        return 3; // Forrest
+    }
+    return 1; // Grass
+}
