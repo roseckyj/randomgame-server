@@ -1,4 +1,4 @@
-import { player, messageUpdate, serverPlayer, messageMapRequest, messageMapChunk } from './messageTypes';
+import { player, messageUpdate, messageMapRequest, messageMapChunk, playerMetadata } from './messageTypes';
 
 const Express = require('express')();
 const Http = require('http').Server(Express);
@@ -7,7 +7,7 @@ import SimplexNoise from 'simplex-noise';
 
 const PORT = process.env.PORT || 80;
 
-const seed = "0000000000"; //Math.floor(Math.random() * 10000000000);
+const seed = Math.floor(Math.random() * 10000000000).toString();
 const simplex = new SimplexNoise(seed.toString());
 
 Http.listen(PORT, () => {
@@ -17,14 +17,14 @@ Http.listen(PORT, () => {
 });
 
 var players: { [key: string]: player } = {};
-var metadata: { [key: string]: serverPlayer } = {};
+var metadata: { [key: string]: playerMetadata } = {};
 
 var requestify = require('requestify');
 upkeep(process.env.UPKEEP_URL || "http://localhost:80/", 10000);
 
 setInterval(() => {
     Object.keys(players).forEach((key) => {
-        if (Math.abs((metadata[key].timeout as number) - ((new Date() as any) as number)) > 2000) {
+        if (Math.abs((metadata[key].timeout as any as number) - ((new Date() as any) as number)) > 2000) {
             delete players[key];
             console.log('Disconnected user due to inactivity: id = ', key);
         }
