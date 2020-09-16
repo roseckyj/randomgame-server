@@ -7,7 +7,7 @@ import SimplexNoise from 'simplex-noise';
 
 const PORT = process.env.PORT || 80;
 
-const simplex = new SimplexNoise()
+const simplex = new SimplexNoise();
 
 Http.listen(PORT, () => {
     console.info('██████████████████████████████████████████');
@@ -32,7 +32,7 @@ Socketio.on('connection', (socket: SocketIO.Socket) => {
     let id = 0;
     do {
         id = Math.floor(Math.random() * 1000000);
-    } while(Object.keys(players).includes(id.toString()));
+    } while (Object.keys(players).includes(id.toString()));
 
     let idStr = id.toString();
     console.log('Connected new user: id = ', idStr);
@@ -58,18 +58,18 @@ Socketio.on('connection', (socket: SocketIO.Socket) => {
                 x: data.x,
                 y: data.y,
                 ground: floor,
-                objects: []
-            }
+                objects: [],
+            };
             socket.emit('mapChunk', response);
         });
     });
 });
 
 async function generateChunk(chunkX: number, chunkY: number) {
-    let chunkData:number[][] = [];
+    let chunkData: number[][] = [];
 
     for (let x = 0; x < 16; x++) {
-        chunkData[x] = []
+        chunkData[x] = [];
     }
 
     for (let x = 0; x < 16; x++) {
@@ -84,11 +84,17 @@ async function generateChunk(chunkX: number, chunkY: number) {
 }
 
 function getTerrain(x: number, y: number): number {
-    const NOISE_SCALE = 0.02;
+    const WATER_SCALE = 0.004;
+    const BIOME_SCALE = 0.0008;
+    const FORREST_SCALE = 0.005;
 
-    const water = simplex.noise2D(x * NOISE_SCALE, y * NOISE_SCALE);
-    const forrest = simplex.noise2D(x * NOISE_SCALE, y * NOISE_SCALE + 200);
+    const river = simplex.noise3D(x * WATER_SCALE, y * WATER_SCALE, 0);
+    const biome =
+        (simplex.noise2D(x * BIOME_SCALE, y * BIOME_SCALE + 200) + simplex.noise2D(x * 0.02, y * 0.02 + 400) * 0.2) /
+        1.2;
+    const forrest = simplex.noise2D(x * FORREST_SCALE, y * FORREST_SCALE + 100);
 
+    /*
     if (water > 0.7) {
         return 2; // Lake (water)
     }
@@ -97,6 +103,22 @@ function getTerrain(x: number, y: number): number {
     }
     if (forrest > 0.4) {
         return 3; // Forrest
+    }
+    return 1; // Grass
+    */
+
+    if (biome < -0.3) {
+        // Ocean (water)
+        if (forrest < -0.6 && river < -0.5) {
+            // Island
+            return 1;
+        }
+        return 2;
+    }
+
+    if (forrest < -0.7) {
+        // Lake (water)
+        return 2;
     }
     return 1; // Grass
 }
