@@ -20,11 +20,11 @@ var players: { [key: string]: player } = {};
 var metadata: { [key: string]: playerMetadata } = {};
 
 var requestify = require('requestify');
-upkeep(process.env.UPKEEP_URL || "http://localhost:80/", 10000);
+upkeep(process.env.UPKEEP_URL || 'http://localhost:80/', 10000);
 
 setInterval(() => {
     Object.keys(players).forEach((key) => {
-        if (Math.abs((metadata[key].timeout as any as number) - ((new Date() as any) as number)) > 2000) {
+        if (Math.abs(((metadata[key].timeout as any) as number) - ((new Date() as any) as number)) > 2000) {
             delete players[key];
             console.log('Disconnected user due to inactivity: id = ', key);
         }
@@ -89,15 +89,26 @@ async function generateChunk(chunkX: number, chunkY: number) {
 }
 
 function getTerrain(x: number, y: number): number {
-    const WATER_SCALE = 0.004;
-    const BIOME_SCALE = 0.0008;
-    const FORREST_SCALE = 0.005;
+    const WATER_SCALE = 0.01;
+    const BIOME_SCALE = 0.04;
+    const FORREST_SCALE = 0.01;
 
-    const river = simplex.noise3D(x * WATER_SCALE, y * WATER_SCALE, 0);
-    const biome =
-        (simplex.noise2D(x * BIOME_SCALE, y * BIOME_SCALE + 200) + simplex.noise2D(x * 0.02, y * 0.02 + 400) * 0.2) /
-        1.2;
+    const water = simplex.noise3D(x * WATER_SCALE, y * WATER_SCALE, 0);
+    //  const biome =
+    //      (simplex.noise2D(x * BIOME_SCALE, y * BIOME_SCALE + 200) + simplex.noise2D(x * 0.02, y * 0.02 + 400) * 0.2) /
+    //      1.2;
     const forrest = simplex.noise2D(x * FORREST_SCALE, y * FORREST_SCALE + 100);
+
+    if (water > 0.6) {
+        if (water < 0.63 && forrest < -0.2) {
+            return 4; //pisek
+        }
+        return 2; //voda
+    }
+    if (forrest > 0) {
+        return 3; //les
+    }
+    return 1; //zeme
 
     /*
     if (water > 0.7) {
@@ -112,7 +123,7 @@ function getTerrain(x: number, y: number): number {
     return 1; // Grass
     */
 
-    if (biome < -0.3) {
+    /*  if (biome < -0.3) {
         // Ocean (water)
         if (forrest < -0.6 && river < -0.5) {
             // Island
@@ -125,11 +136,11 @@ function getTerrain(x: number, y: number): number {
         // Lake (water)
         return 2;
     }
-    return 1; // Grass
+    return 1; // Grass  */
 }
 
 async function upkeep(upkeepURL: string, interval: number) {
     setInterval(() => {
         requestify.get(upkeepURL).then(() => {});
-    }, interval); 
+    }, interval);
 }
