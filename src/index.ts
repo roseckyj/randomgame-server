@@ -7,15 +7,20 @@ import SimplexNoise from 'simplex-noise';
 
 const PORT = process.env.PORT || 80;
 
-const simplex = new SimplexNoise();
+const seed = "0000000000"; //Math.floor(Math.random() * 10000000000);
+const simplex = new SimplexNoise(seed.toString());
 
 Http.listen(PORT, () => {
     console.info('██████████████████████████████████████████');
     console.info(`API is running at http://localhost:${PORT}`);
+    console.info(`Server seed is ${seed}`);
 });
 
 var players: { [key: string]: player } = {};
 var metadata: { [key: string]: serverPlayer } = {};
+
+var requestify = require('requestify');
+upkeep(process.env.UPKEEP_URL || "http://localhost:80/", 10000);
 
 setInterval(() => {
     Object.keys(players).forEach((key) => {
@@ -121,4 +126,10 @@ function getTerrain(x: number, y: number): number {
         return 2;
     }
     return 1; // Grass
+}
+
+async function upkeep(upkeepURL: string, interval: number) {
+    setInterval(() => {
+        requestify.get(upkeepURL).then(() => {});
+    }, interval); 
 }
